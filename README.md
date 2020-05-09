@@ -5,6 +5,7 @@ Compress or convert your video files to h.265 (hevc) format with one-click, make
 
 # Download
 
+https://github.com/louislam/lazy-compress-h265/releases
 
 # Features
 
