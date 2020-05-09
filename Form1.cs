@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,12 +17,16 @@ namespace CompressH265 {
     public partial class Form1 : Form {
 
         private bool isFromContextMenu = false;
+        private bool installed = false;
         
         public Form1() {
             InitializeComponent();
         }
         
         private void Form1_Load(object sender, EventArgs e) {
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+            Text = Text + " v" + version.Major + "." + version.Minor;
+            
             AddShieldToButton(buttonContextMenu);
     
             string[] args = Environment.GetCommandLineArgs();        
@@ -36,6 +41,20 @@ namespace CompressH265 {
                     isInputFilePath = false;
                     button2_Click(null, null);
                 }
+            }
+
+            UpdateContextMenuButton();
+        }
+
+        public void UpdateContextMenuButton() {
+            var a = Registry.ClassesRoot.OpenSubKey("*\\shell\\Compress to H.265 (HEVC)");
+
+            if (a == null) {
+                buttonContextMenu.Text = "Install to Context Menu";
+                installed = false;
+            } else {
+                buttonContextMenu.Text = "Uninstall from Context Menu";
+                installed = true;
             }
         }
 
@@ -65,6 +84,17 @@ namespace CompressH265 {
         }
 
         private void button2_Click(object sender, EventArgs e) {
+
+            if (textBox1.Text.Trim() == "") {
+                MessageBox.Show("Please select or drag-and-drop a file.");
+                return;
+            }
+            
+            if (!File.Exists(textBox1.Text)) {
+                MessageBox.Show("File Not Found");
+                return;
+            }
+            
             Process process = new Process();
             process.EnableRaisingEvents = true;
             //   process.StartInfo.RedirectStandardOutput = true;
@@ -98,11 +128,17 @@ namespace CompressH265 {
             info.FileName = System.Reflection.Assembly.GetExecutingAssembly().Location;
             info.UseShellExecute = true;
             info.Verb = "runas"; // Provides Run as Administrator
-            info.Arguments = "-contextmenu";
+
+            if (installed) {
+                info.Arguments = "-uninstallcontextmenu";
+            } else {
+                info.Arguments = "-contextmenu";
+            }
 
             try {
                 if (Process.Start(info) != null) {
                     MessageBox.Show("Installed successfully.");
+                    UpdateContextMenuButton();
                 } else {
                     MessageBox.Show("Error");
                 }
@@ -132,6 +168,10 @@ namespace CompressH265 {
             if (isFromContextMenu) {
                 Hide();
             }
+        }
+
+        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
+            System.Diagnostics.Process.Start("https://github.com/louislam/lazy-compress-h265");
         }
     }
 }

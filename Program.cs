@@ -8,6 +8,8 @@ using Microsoft.Win32;
 
 namespace CompressH265 {
     static class Program {
+        private static string subkey = "*\\shell\\Compress to H.265 (HEVC)";
+        
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -20,6 +22,9 @@ namespace CompressH265 {
 
                 if (item == "-contextmenu") {
                     installContextMenu();
+                    System.Environment.Exit(1);
+                } else if (item == "-uninstallcontextmenu") {
+                    uninstallContextMenu();
                     System.Environment.Exit(1);
                 }
                     
@@ -44,7 +49,7 @@ namespace CompressH265 {
         public static void installContextMenu() {
             RegistryKey item = null;
             try {
-                item = Registry.ClassesRoot.CreateSubKey("*\\shell\\Compress to H.265 (HEVC)\\command");
+                item = Registry.ClassesRoot.CreateSubKey(subkey + "\\command");
                 item.SetValue("", System.Reflection.Assembly.GetExecutingAssembly().Location + " -i \"%1\"");
             }
             catch(Exception ex)
@@ -56,6 +61,10 @@ namespace CompressH265 {
                 if(item != null)
                     item.Close();
             }        
+        }
+
+        public static void uninstallContextMenu() {
+            Registry.ClassesRoot.DeleteSubKeyTree(subkey);
         }
     }
 }
