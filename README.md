@@ -14,7 +14,8 @@ https://github.com/louislam/lazy-compress-h265/releases
 * Free and Open Source
 * Reduce your video files size and almost keep the quality of your original file
 * No config is required
-* Install to your Context Menu, one-click to compress
+* Easy to use, drag-and-drop and compress
+* Alternative, you could install to your Context Menu, one-click to compress
 * Output to the same folder with postfix ".h265.mp4"
 * Portable
 
