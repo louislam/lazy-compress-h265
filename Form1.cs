@@ -6,16 +6,37 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Microsoft.Win32;
 
 namespace CompressH265 {
     public partial class Form1 : Form {
+
+        private bool isFromContextMenu = false;
+        
         public Form1() {
             InitializeComponent();
-            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
+        }
+        
+        private void Form1_Load(object sender, EventArgs e) {
+            AddShieldToButton(buttonContextMenu);
+    
+            string[] args = Environment.GetCommandLineArgs();        
+
+            var isInputFilePath = false;
+            foreach (var arg in args) {
+                if (arg == "-i") {
+                    isInputFilePath = true;
+                } else if (isInputFilePath) {
+                    isFromContextMenu = true;
+                    textBox1.Text = arg;
+                    isInputFilePath = false;
+                    button2_Click(null, null);
+                }
+            }
         }
 
         private void button1_Click(object sender, EventArgs e) {
@@ -52,9 +73,13 @@ namespace CompressH265 {
             var outputFilename = textBox1.Text + ".h265.mp4";
         
             process.StartInfo.FileName = "cmd.exe";
-            process.StartInfo.Arguments = $"/K ffmpeg.exe -i \"{textBox1.Text}\" -vcodec hevc  \"{outputFilename}\"";
+            process.StartInfo.Arguments = $"/K ffmpeg.exe -i \"{textBox1.Text}\" -vcodec hevc -map_metadata 0 \"{outputFilename}\"";
             process.StartInfo.UseShellExecute = false;
             // process.StartInfo.CreateNoWindow = true;
+
+            process.Exited += (sender2, e2) => {
+                System.Environment.Exit(1);
+            };
             
             //  process.OutputDataReceived += OnProcessOutput;
             //  process.ErrorDataReceived += OnProcessOutput;
@@ -66,6 +91,47 @@ namespace CompressH265 {
 
         private void OnProcessOutput(object send, DataReceivedEventArgs args) {
          //   textBox2.Text += args.Data;
+        }
+
+        private void button3_Click(object sender, EventArgs e) {
+            ProcessStartInfo info = new ProcessStartInfo();
+            info.FileName = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            info.UseShellExecute = true;
+            info.Verb = "runas"; // Provides Run as Administrator
+            info.Arguments = "-contextmenu";
+
+            try {
+                if (Process.Start(info) != null) {
+                    MessageBox.Show("Installed successfully.");
+                } else {
+                    MessageBox.Show("Error");
+                }
+            } catch (Exception exception) {
+                MessageBox.Show("Error: You have to allow UAC in order to install to the context menu.");
+            }
+
+        }
+        
+        [DllImport("user32.dll")]
+        public static extern int SendMessage(IntPtr hWnd,
+            uint Msg, int wParam, int lParam);
+
+// Make the button display the UAC shield.
+        public static void AddShieldToButton(Button btn)
+        {
+            const Int32 BCM_SETSHIELD = 0x160C;
+
+            // Give the button the flat style and make it
+            // display the UAC shield.
+            btn.FlatStyle = System.Windows.Forms.FlatStyle.System;
+            SendMessage(btn.Handle, BCM_SETSHIELD, 0, 1);
+        }
+
+
+        private void Form1_Shown(object sender, EventArgs e) {
+            if (isFromContextMenu) {
+                Hide();
+            }
         }
     }
 }
