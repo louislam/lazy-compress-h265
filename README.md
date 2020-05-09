@@ -16,7 +16,9 @@ https://github.com/louislam/lazy-compress-h265/releases
 * No config is required
 * Install to your Context Menu, one-click to compress
 * Output to the same folder with postfix ".h265.mp4"
+* Portable
 
+* ffmpeg as core
 
 # Requirements
 
