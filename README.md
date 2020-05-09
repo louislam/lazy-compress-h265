@@ -18,8 +18,6 @@ https://github.com/louislam/lazy-compress-h265/releases
 * Output to the same folder with postfix ".h265.mp4"
 * Portable
 
-* ffmpeg as core
-
 # Requirements
 
 * OS: Windows 10
@@ -30,3 +28,9 @@ https://github.com/louislam/lazy-compress-h265/releases
 477MB to 66MB
 
 ![image](https://github.com/louislam/lazy-compress-h265/blob/master/readme_images/2020-05-09_231655.png)
+
+# Build
+
+* IDE: Rider 2020.1
+* Put ffmpeg.exe in the same folder 
+
