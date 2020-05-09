@@ -18,5 +18,5 @@ https://github.com/louislam/lazy-compress-h265/releases
 
 # Requirements
 
-OS: Windows 10
-.NET 4.8
+* OS: Windows 10
+* .NET Framework 4.8
