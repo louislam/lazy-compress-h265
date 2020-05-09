@@ -22,3 +22,7 @@ https://github.com/louislam/lazy-compress-h265/releases
 
 * OS: Windows 10
 * .NET Framework 4.8
+
+# Sample
+477MB to 66MB
+![image](https://github.com/louislam/lazy-compress-h265/blob/master/readme_images/2020-05-09_231655.png)
