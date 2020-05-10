@@ -22,6 +22,8 @@ namespace CompressH265 {
 
         private int runningProcessCount = 0;
 
+        private LinkedList<Process> processList = new LinkedList<Process>();
+        
         public Form1() {
             InitializeComponent();
         }
@@ -115,7 +117,7 @@ namespace CompressH265 {
             }
         
             process.StartInfo.FileName = "ffmpeg.exe";
-            process.StartInfo.Arguments = $"-i \"{inputFilename}\" -vcodec hevc -map_metadata 0 \"{outputFilename}\"";
+            process.StartInfo.Arguments = $"-i \"{inputFilename}\" -vcodec hevc -map_metadata 0 -crf 28 -preset slow \"{outputFilename}\"";
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
 
@@ -160,6 +162,8 @@ namespace CompressH265 {
             runningProcessCount++;
             process.Start();
             process.BeginErrorReadLine();
+
+            processList.AddLast(process);
         }
 
         private void button3_Click(object sender, EventArgs e) {
@@ -215,13 +219,16 @@ namespace CompressH265 {
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e) {
             if (runningProcessCount > 0) {
-                var result = MessageBox.Show("Are you sure want to stop the processing?", "Stop process",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question);
+                var result = MessageBox.Show("Are you sure want to stop the processing?", "Stop process", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
-                e.Cancel = (result == DialogResult.No);
+                if (result == DialogResult.Yes) {
+                    foreach (var p in processList) {
+                        p.Kill();
+                    }
+                } else {
+                    e.Cancel = true;
+                }
             }
-  
         }
     }
 }
