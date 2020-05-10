@@ -18,7 +18,10 @@ namespace CompressH265 {
 
         private bool isFromContextMenu = false;
         private bool installed = false;
-        
+        private int nextTaskID = 0;
+
+        private int runningProcessCount = 0;
+
         public Form1() {
             InitializeComponent();
         }
@@ -84,43 +87,79 @@ namespace CompressH265 {
         }
 
         private void button2_Click(object sender, EventArgs e) {
-
-            if (textBox1.Text.Trim() == "") {
+            var inputFilename = textBox1.Text;
+            var shortName = Path.GetFileName(inputFilename);
+            
+            if (inputFilename.Trim() == "") {
                 MessageBox.Show("Please select or drag-and-drop a file.");
                 return;
             }
             
-            if (!File.Exists(textBox1.Text)) {
+            if (!File.Exists(inputFilename)) {
                 MessageBox.Show("File Not Found");
                 return;
             }
+
+            var creationTime = File.GetCreationTime(inputFilename);
+            var lastAccessTime = File.GetLastAccessTime(inputFilename);
+            var lastWriteTime = File.GetLastWriteTime(inputFilename);
             
             Process process = new Process();
             process.EnableRaisingEvents = true;
-            //   process.StartInfo.RedirectStandardOutput = true;
-            //    process.StartInfo.RedirectStandardError = true;
 
-            var outputFilename = textBox1.Text + ".h265.mp4";
+            var outputFilename = inputFilename + ".h265.mp4";
+            
+            if (File.Exists(outputFilename)) {
+                MessageBox.Show("The output file name is existing. Please move or delete it before converting. " + outputFilename);
+                return;
+            }
         
-            process.StartInfo.FileName = "cmd.exe";
-            process.StartInfo.Arguments = $"/K ffmpeg.exe -i \"{textBox1.Text}\" -vcodec hevc -map_metadata 0 \"{outputFilename}\"";
+            process.StartInfo.FileName = "ffmpeg.exe";
+            process.StartInfo.Arguments = $"-i \"{inputFilename}\" -vcodec hevc -map_metadata 0 \"{outputFilename}\"";
             process.StartInfo.UseShellExecute = false;
-            // process.StartInfo.CreateNoWindow = true;
+            process.StartInfo.CreateNoWindow = true;
 
-            process.Exited += (sender2, e2) => {
-                System.Environment.Exit(1);
+            var rowID = nextTaskID++;
+            var msgQueue = new Queue<string>();
+            dataGridView1.Rows.Insert(rowID, shortName, "Preparing...");
+            var row = dataGridView1.Rows[rowID];
+            
+            process.StartInfo.RedirectStandardError = true;
+            process.ErrorDataReceived += (errorEvent,errorArgs) => {
+                if (errorArgs.Data == null || errorArgs.Data.Trim() == "") {
+                    return;
+                }
+                
+                msgQueue.Enqueue(errorArgs.Data);
+
+                if (msgQueue.Count == 5) {
+                    msgQueue.Dequeue();
+                }
+                
+                row.Cells[1].Value = String.Join(" | ", msgQueue.Reverse());
             };
             
-            //  process.OutputDataReceived += OnProcessOutput;
-            //  process.ErrorDataReceived += OnProcessOutput;
-            process.Start();
-   
-            // process.BeginErrorReadLine();
-            // process.BeginOutputReadLine();
-        }
+            process.Exited += (sender2, e2) => {
+                
+                if (File.Exists(outputFilename)) {
+                    File.SetCreationTime(outputFilename, creationTime);
+                    File.SetLastAccessTime(outputFilename, lastAccessTime);
+                    File.SetLastWriteTime(outputFilename, lastWriteTime);
+                }
+                
+                msgQueue.Enqueue("Finish");
+                row.Cells[1].Value = String.Join(" | ", msgQueue.Reverse());
+                
+                if (isFromContextMenu) {
+                    //System.Environment.Exit(1);
+                }
 
-        private void OnProcessOutput(object send, DataReceivedEventArgs args) {
-         //   textBox2.Text += args.Data;
+                runningProcessCount--;
+            };
+
+            runningProcessCount++;
+            process.Start();
+            process.BeginErrorReadLine();
         }
 
         private void button3_Click(object sender, EventArgs e) {
@@ -166,12 +205,23 @@ namespace CompressH265 {
 
         private void Form1_Shown(object sender, EventArgs e) {
             if (isFromContextMenu) {
-                Hide();
+                //Hide();
             }
         }
 
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
             System.Diagnostics.Process.Start("https://github.com/louislam/lazy-compress-h265");
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e) {
+            if (runningProcessCount > 0) {
+                var result = MessageBox.Show("Are you sure want to stop the processing?", "Stop process",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                e.Cancel = (result == DialogResult.No);
+            }
+  
         }
     }
 }

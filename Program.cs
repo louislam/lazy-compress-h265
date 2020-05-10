@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Win32;
@@ -15,7 +17,13 @@ namespace CompressH265 {
         /// </summary>
         [STAThread]
         static void Main(string[] args) {
-     
+            var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
+            if (path != null) {
+                Environment.CurrentDirectory = path;
+            }
+        
+
             foreach(var item in args)
             {
                 Console.WriteLine(item);

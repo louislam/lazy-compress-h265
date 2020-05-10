@@ -16,6 +16,7 @@ https://github.com/louislam/lazy-compress-h265/releases
 * No config is required
 * Easy to use, drag-and-drop and compress
 * Alternative, you could install to your Context Menu, one-click to compress
+* Keep metadata, date created and date modified.
 * Output to the same folder with postfix ".h265.mp4"
 * Portable
 
