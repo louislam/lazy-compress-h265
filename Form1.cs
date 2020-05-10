@@ -117,7 +117,7 @@ namespace CompressH265 {
             }
         
             process.StartInfo.FileName = "ffmpeg.exe";
-            process.StartInfo.Arguments = $"-i \"{inputFilename}\" -vcodec hevc -map_metadata 0 -crf 28 -preset slow \"{outputFilename}\"";
+            process.StartInfo.Arguments = $"-i \"{inputFilename}\" -vcodec hevc -map_metadata 0 -vf yadif -crf 16 -preset medium \"{outputFilename}\"";
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
 
