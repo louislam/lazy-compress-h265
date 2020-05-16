@@ -109,7 +109,7 @@
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.ReadOnly = true;
             this.dataGridView1.RowTemplate.Height = 24;
-            this.dataGridView1.Size = new System.Drawing.Size(587, 141);
+            this.dataGridView1.Size = new System.Drawing.Size(586, 141);
             this.dataGridView1.TabIndex = 8;
             // 
             // FilePath
@@ -117,6 +117,7 @@
             this.FilePath.HeaderText = "File Path";
             this.FilePath.Name = "FilePath";
             this.FilePath.ReadOnly = true;
+            this.FilePath.Width = 272;
             // 
             // Status
             // 

@@ -116,11 +116,24 @@ namespace CompressH265 {
                 return;
             }
         
+            // Get FPS
+            var fps = GetFPS(inputFilename);
+            var fpsParam = "";
+
+            if (fps > 0) {
+                fpsParam = "-r " + fps;
+            }
+
+
+            
+            // Converting
             process.StartInfo.FileName = "ffmpeg.exe";
-            process.StartInfo.Arguments = $"-i \"{inputFilename}\" -vcodec hevc -map_metadata 0 -vf yadif -crf 16 -preset medium \"{outputFilename}\"";
+            process.StartInfo.Arguments = $" -i \"{inputFilename}\" -vcodec hevc -map_metadata 0 -vf yadif -crf 20 -preset medium {fpsParam} \"{outputFilename}\"";
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
 
+            MessageBox.Show(process.StartInfo.Arguments);
+            
             var rowID = nextTaskID++;
             var msgQueue = new Queue<string>();
             dataGridView1.Rows.Insert(rowID, shortName, "Preparing...");
@@ -164,6 +177,39 @@ namespace CompressH265 {
             process.BeginErrorReadLine();
 
             processList.AddLast(process);
+        }
+
+        private float GetFPS(string inputFilename) {
+            Process process = new Process();
+            process.StartInfo.FileName = "ffmpeg.exe";
+            process.StartInfo.Arguments = $"-i \"{inputFilename}\"";
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.CreateNoWindow = true;
+            process.StartInfo.RedirectStandardError = true;
+            process.Start();
+            process.WaitForExit();
+            string err = process.StandardError.ReadToEnd();
+            
+            var end = err.IndexOf(" fps,");
+
+            if (end < 0) {
+                return -1f;
+            }
+
+            var start = end;
+
+            while (true) {
+                if (err[start - 1] == ' ') {
+                    break;
+                }
+                start--;
+
+                if (start < 0) {
+                    return -1;
+                }
+            }
+
+            return float.Parse(err.Substring(start, end - start));
         }
 
         private void button3_Click(object sender, EventArgs e) {
